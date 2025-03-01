@@ -10,6 +10,7 @@ export class UI {
         this.finalScoreDisplay = document.getElementById('final-score');
         this.finalHighestDisplay = document.getElementById('final-highest');
         this.cells = [];
+
     }
 
     createBoardCells() {
@@ -189,5 +190,13 @@ export class UI {
                 }
             }, 300);
         }
+    }
+    resumeGameAfterAd() {
+        // This method is called after an ad is closed
+        // It can be used to unpause the game or perform any other action
+        console.log('Resuming game after ad...');
+        
+        // If we need to do anything special after the ad closes, do it here
+        // For now, we'll just let the game continue
     }
 }

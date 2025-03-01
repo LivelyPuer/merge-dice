@@ -57,25 +57,22 @@
 
     <div id="leaderboard-modal" class="leaderboard-modal">
         <div class="leaderboard-content">
-            <h2>Leaderboard</h2>
-            <table class="leaderboard-table">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Score</th>
-                        <th>Highest Die</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboard-tbody">
-                    <!-- Will be populated dynamically -->
-                </tbody>
-            </table>
-            <div class="close-btn">
-                <button id="close-leaderboard">Close</button>
+            <h2>Dice Dynasty Leaderboard</h2>
+            <div class="leaderboard-header">
+                <p class="leaderboard-description">Your highest scores are saved automatically!</p>
+            </div>
+            
+            <div id="global-leaderboard" class="leaderboard-section">
+                <div class="global-leaderboard-message">
+                    Loading leaderboard data...
+                    <p>Please wait while we fetch the latest scores.</p>
+                </div>
+            </div>
+            
+            <div class="leaderboard-actions">
+                <button id="close-leaderboard" class="close-button">Close</button>
             </div>
         </div>
     </div>
-</body>
 
 </html>

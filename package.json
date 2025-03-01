@@ -6,7 +6,8 @@
   "scripts": {
     "start": "webpack serve --open",
     "build": "webpack --mode production",
-    "build:itch": "webpack --mode production && node scripts/prepare-itch.js"
+    "build:itch": "webpack --mode production && node scripts/prepare-itch.js",
+    "zip": "webpack --mode production && npm-build-zip --source=dist/"
   },
   "keywords": [
     "game",
@@ -20,6 +21,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",
     "html-webpack-plugin": "^5.5.3",
+    "npm-build-zip": "^1.0.4",
     "style-loader": "^3.3.3",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",

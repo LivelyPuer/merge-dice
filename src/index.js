@@ -42,11 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaderboardModal = document.getElementById('leaderboard-modal');
     
     if (leaderboardBtn && leaderboardModal) {
-        leaderboardBtn.addEventListener('click', () => {
-            leaderboardModal.style.display = 'flex';
-            updateLeaderboard();
-        });
-        
         const closeLeaderboard = document.getElementById('close-leaderboard');
         if (closeLeaderboard) {
             closeLeaderboard.addEventListener('click', () => {
@@ -54,9 +49,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-    
-    function updateLeaderboard() {
-        // Placeholder function for updating the leaderboard
-        // In a real game, this would load scores from localStorage or a server
-    }
+
+    // Add keyboard shortcut for leaderboard (L key)
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'l' || event.key === 'L') {
+            leaderboardBtn.click();
+        }
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            // Game is being hidden/backgrounded, ensure scores are saved
+            if (game) {
+                game.checkPendingUpdates();
+            }
+        }
+    });
 });

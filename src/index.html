@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dice Dynasty</title>
+    <meta name="description" content="A merge dice puzzle game where you combine dice to create higher values">
+    <meta name="author" content="Your Name">
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+</head>
+
+<body>
+    <button id="settings-btn" class="settings-btn">⚙️</button>
+    <div id="settings-menu" class="settings-menu">
+        <h3>Settings</h3>
+        <div class="settings-option">
+            <span>Sound:</span>
+            <button id="sound-toggle">🔊</button>
+        </div>
+    </div>
+
+    <button id="leaderboard-btn" class="leaderboard-btn">🏆</button>
+
+    <header>
+        <h1>Dice Dynasty</h1>
+    </header>
+
+    <div class="game-info">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="highest-die">Highest: <span id="highest-die">1</span></div>
+    </div>
+
+    <div class="game-board" id="game-board"></div>
+    <div class="side-button-container">
+        <button id="add-die-btn" class="add-die-btn" aria-label="Add die to the board">Add Dice</button>
+    </div>
+    <div class="actions">
+        <button id="new-game-btn">New Game</button>
+    </div>
+
+    <div class="game-over" id="game-over">
+        <h2>Game Over</h2>
+        <p>Final Score: <span id="final-score">0</span></p>
+        <p>Highest Die: <span id="final-highest">1</span></p>
+        <button id="restart-btn">Play Again</button>
+    </div>
+
+    <div class="tutorial" id="tutorial">
+        <h3>How to Play</h3>
+        <p>1. Click on a die to select it</p>
+        <p>2. Click on another identical die to merge them</p>
+        <p>3. Merged dice level up (1+1=2, 2+2=3, etc.)</p>
+        <p>4. Try to create the highest value dice!</p>
+        <button id="close-tutorial">Got it!</button>
+    </div>
+
+    <div id="leaderboard-modal" class="leaderboard-modal">
+        <div class="leaderboard-content">
+            <h2>Leaderboard</h2>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Score</th>
+                        <th>Highest Die</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-tbody">
+                    <!-- Will be populated dynamically -->
+                </tbody>
+            </table>
+            <div class="close-btn">
+                <button id="close-leaderboard">Close</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

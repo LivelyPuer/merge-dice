@@ -13,64 +13,74 @@
 <body>
     <button id="settings-btn" class="settings-btn">⚙️</button>
     <div id="settings-menu" class="settings-menu">
-        <h3>Settings</h3>
+        <h3 data-loc-key="settings">Settings</h3>
         <div class="settings-option">
-            <span>Sound:</span>
+            <span data-loc-key="sound">Sound:</span>
             <button id="sound-toggle">🔊</button>
         </div>
+        <!-- Language selector will be added dynamically -->
     </div>
 
     <button id="leaderboard-btn" class="leaderboard-btn">🏆</button>
 
     <header>
-        <h1>Dice Dynasty</h1>
+        <h1 data-loc-key="game_title">Dice Dynasty</h1>
     </header>
 
     <div class="game-info">
-        <div class="score">Score: <span id="score">0</span></div>
-        <div class="highest-die">Highest: <span id="highest-die">1</span></div>
+        <div class="score">
+            <span class="label" data-loc-key="score">Score</span>: <span id="score">0</span>
+        </div>
+        <div class="highest-die">
+            <span class="label" data-loc-key="highest">Highest</span>: <span id="highest-die">1</span>
+        </div>
     </div>
 
     <div class="game-board" id="game-board"></div>
     <div class="side-button-container">
-        <button id="add-die-btn" class="add-die-btn" aria-label="Add die to the board">Add Dice</button>
+        <button id="add-die-btn" class="add-die-btn" aria-label="Add die to the board" data-loc-key="add_dice">Add Dice</button>
     </div>
     <div class="actions">
-        <button id="new-game-btn">New Game</button>
+        <button id="new-game-btn" data-loc-key="new_game">New Game</button>
     </div>
 
     <div class="game-over" id="game-over">
-        <h2>Game Over</h2>
-        <p>Final Score: <span id="final-score">0</span></p>
-        <p>Highest Die: <span id="final-highest">1</span></p>
-        <button id="restart-btn">Play Again</button>
+        <h2 data-loc-key="game_over">Game Over</h2>
+        <p>
+            <span class="label" data-loc-key="final_score">Final Score</span>: <span id="final-score">0</span>
+        </p>
+        <p>
+            <span class="label" data-loc-key="highest_die">Highest Die</span>: <span id="final-highest">1</span>
+        </p>
+        <button id="restart-btn" data-loc-key="play_again">Play Again</button>
     </div>
 
     <div class="tutorial" id="tutorial">
-        <h3>How to Play</h3>
-        <p>1. Click on a die to select it</p>
-        <p>2. Click on another identical die to merge them</p>
-        <p>3. Merged dice level up (1+1=2, 2+2=3, etc.)</p>
-        <p>4. Try to create the highest value dice!</p>
-        <button id="close-tutorial">Got it!</button>
+        <h3 data-loc-key="tutorial_title">How to Play</h3>
+        <p data-loc-key="tutorial_1">1. Click on a die to select it</p>
+        <p data-loc-key="tutorial_2">2. Or drag and drop a die onto another identical die to merge them</p>
+        <p data-loc-key="tutorial_3">3. Merged dice level up (1+1=2, 2+2=3, etc.)</p>
+        <p data-loc-key="tutorial_4">4. Try to create the highest value dice!</p>
+        <p data-loc-key="tutorial_5">5. Use the "Add Dice" button to add more dice to the board</p>
+        <button id="close-tutorial" data-loc-key="got_it">Got it!</button>
     </div>
 
     <div id="leaderboard-modal" class="leaderboard-modal">
         <div class="leaderboard-content">
-            <h2>Dice Dynasty Leaderboard</h2>
+            <h2 data-loc-key="leaderboard">Dice Dynasty Leaderboard</h2>
             <div class="leaderboard-header">
-                <p class="leaderboard-description">Your highest scores are saved automatically!</p>
+                <p class="leaderboard-description" data-loc-key="leaderboard_description">Your highest scores are saved automatically!</p>
             </div>
             
             <div id="global-leaderboard" class="leaderboard-section">
-                <div class="global-leaderboard-message">
+                <div class="global-leaderboard-message" data-loc-key="loading_leaderboard">
                     Loading leaderboard data...
                     <p>Please wait while we fetch the latest scores.</p>
                 </div>
             </div>
             
             <div class="leaderboard-actions">
-                <button id="close-leaderboard" class="close-button">Close</button>
+                <button id="close-leaderboard" data-loc-key="close" class="close-button">Close</button>
             </div>
         </div>
     </div>

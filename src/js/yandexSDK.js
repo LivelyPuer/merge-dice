@@ -8,6 +8,7 @@ export class YandexSDK {
         this.leaderboardName = 'main'; // Using "main" as the leaderboard name
         this.ysdk = null;
         this.leaderboard = null;
+        this.initCallbacks = [];
 
         // Initialize the SDK
         this.init();
@@ -19,6 +20,7 @@ export class YandexSDK {
             if (typeof YaGames === 'undefined') {
                 console.warn('YaGames SDK not available, running in local/development mode');
                 this.initialized = false;
+                this.triggerInitCallbacks();
                 return;
             }
 
@@ -71,10 +73,63 @@ export class YandexSDK {
             this.initialized = true;
             console.log('Yandex Games SDK initialized successfully');
 
+            // Trigger callbacks
+            this.triggerInitCallbacks();
+
         } catch (error) {
             console.error('Error initializing Yandex Games SDK:', error);
             this.initialized = false;
+            this.triggerInitCallbacks();
         }
+    }
+    /**
+    * Register a callback to be called when SDK initialization is complete
+    * @param {Function} callback 
+    */
+    onInit(callback) {
+        if (this.initialized) {
+            // If already initialized, call immediately
+            callback(this.initialized);
+        } else {
+            // Otherwise add to queue
+            this.initCallbacks.push(callback);
+        }
+    }
+
+    /**
+     * Trigger all registered init callbacks
+     */
+    triggerInitCallbacks() {
+        for (const callback of this.initCallbacks) {
+            try {
+                callback(this.initialized);
+            } catch (e) {
+                console.error('Error in SDK init callback:', e);
+            }
+        }
+        // Clear the callbacks
+        this.initCallbacks = [];
+    }
+
+    /**
+     * Get language from Yandex environment
+     * @returns {string|null} The detected language or null if not available
+     */
+    getLanguage() {
+        if (!this.initialized || !this.ysdk) {
+            return null;
+        }
+
+        try {
+            const environment = this.ysdk.environment;
+            if (environment && environment.i18n && environment.i18n.lang) {
+                return environment.i18n.lang;
+            }
+        } catch (error) {
+            console.warn('Error getting language from Yandex SDK:', error);
+        }
+
+        return null;
     }
 
     // Save score to leaderboard
@@ -85,6 +140,7 @@ export class YandexSDK {
         }
 
         try {
+            // The Yandex SDK will internally check if the score is better than the previous one
             await this.leaderboard.setLeaderboardScore(this.leaderboardName, score);
             console.log('Score saved to leaderboard:', score);
             return true;
@@ -112,12 +168,13 @@ export class YandexSDK {
             // Clear previous content and show loading message
             globalLeaderboardDiv.innerHTML = '<div class="loading-leaderboard">Loading leaderboard data...</div>';
 
-            // Get leaderboard data from Yandex
+            // Get leaderboard data from Yandex - only when we actually need to show it
             const leaderboard = await this.ysdk.getLeaderboards();
 
             try {
                 const leaderboardData = await leaderboard.getLeaderboardEntries(this.leaderboardName, { quantityTop: 10 });
 
+                // Display logic remains the same
                 if (!leaderboardData || !leaderboardData.entries || leaderboardData.entries.length === 0) {
                     globalLeaderboardDiv.innerHTML = '<div class="no-scores-message">No global scores available yet. Be the first to submit your score!</div>';
                     return true;
@@ -290,18 +347,15 @@ export class YandexSDK {
  * @returns {Promise<number|null>} The player's current score or null if not found
  */
     async getPlayerLeaderboardScore() {
-        if (!this.initialized || !this.ysdk) {
-            console.warn('Cannot get player score: SDK not initialized');
+        if (!this.initialized || !this.ysdk || !this.leaderboard) {
+            console.warn('Cannot get player score: SDK not initialized or leaderboard not available');
             return null;
         }
-
+    
         try {
-            // Get leaderboard
-            const leaderboard = await this.ysdk.getLeaderboards();
-
             // Try to get player entry
             try {
-                const playerEntry = await leaderboard.getLeaderboardPlayerEntry(this.leaderboardName);
+                const playerEntry = await this.leaderboard.getLeaderboardPlayerEntry(this.leaderboardName);
                 if (playerEntry && typeof playerEntry.score === 'number') {
                     console.log(`Found player's leaderboard score: ${playerEntry.score}`);
                     return playerEntry.score;
@@ -309,7 +363,10 @@ export class YandexSDK {
                 return null; // No score found
             } catch (error) {
                 // If error contains "not found", the player doesn't have a score yet
-                if (error.message && error.message.includes('not found')) {
+                if (error.message && (
+                    error.message.includes('not found') || 
+                    error.message.includes('Player is not present')
+                )) {
                     console.log('Player has no score in the leaderboard yet');
                     return null;
                 }
@@ -317,7 +374,9 @@ export class YandexSDK {
             }
         } catch (error) {
             console.warn('Error getting player leaderboard score:', error);
-            return null;
+            throw error; // Re-throw to allow proper handling in the calling method
         }
     }
 }
+
+// TODO add flex leaderboard and settings buttons

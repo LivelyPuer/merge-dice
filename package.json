@@ -17,6 +17,9 @@
   ],
   "author": "Your Name",
   "license": "MIT",
+  "dependencies": {
+    "papaparse": "^5.4.1"
+  },
   "devDependencies": {
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",

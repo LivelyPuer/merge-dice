@@ -2,6 +2,7 @@ import { UI } from './ui';
 import { AudioManager } from './audio';
 import { getRandomInt, saveToLocalStorage, loadFromLocalStorage } from './utils';
 import { YandexSDK } from './yandexSDK';
+import { Localization } from './localization';
 
 /**
  * Main game class that manages the game state and logic
@@ -17,9 +18,6 @@ export class Game {
         // Create the audio manager first
         this.audio = new AudioManager();
 
-        // Then initialize the UI and other components
-        this.ui = new UI(this);
-
         // Make sure audio methods are safely callable with optional chaining
         this.playSound = (soundName) => {
             this.audio?.playSound(soundName);
@@ -34,22 +32,64 @@ export class Game {
         this.gameOver = false;
 
         this.lastLeaderboardUpdate = 0;
-        this.leaderboardUpdateInterval = 5000; // 5 seconds in milliseconds
+        this.leaderboardUpdateInterval = 30000; // 30 seconds in milliseconds
         this.scoreChanged = false;
 
         // Load high scores from local storage
         this.highScores = loadFromLocalStorage('diceHighScores', []);
 
-        // Initialize UI and audio
+        // Initialize UI
         this.ui = new UI(this);
-        this.audio = new AudioManager();
 
+        // Initialize localization first with default settings
+        this.localization = new Localization();
+
+        // Initialize Yandex SDK
         this.yandexSDK = new YandexSDK(this);
 
-        // Initialize the game
-        this.init();
+        // Wait for SDK initialization before starting the game
+        this.waitForSDKInitialization();
+    }
+    /*
+    * Wait for the Yandex SDK to initialize before proceeding
+    */
+    waitForSDKInitialization() {
+        // Define a check function
+        const checkSDKInit = () => {
+            if (this.yandexSDK.initialized) {
+                // SDK is initialized, now initialize localization with SDK
+                this.initLocalization();
+            } else {
+                // Check again after a short delay
+                setTimeout(checkSDKInit, 100);
+            }
+        };
+
+        // Start checking
+        checkSDKInit();
     }
 
+    /**
+  * Initialize localization
+  */
+    async initLocalization() {
+        try {
+            // Initialize localization with Yandex SDK
+            await this.localization.init(this.yandexSDK);
+            
+            // Register for language change events
+            document.addEventListener('languageChanged', () => {
+                this.onLanguageChange();
+            });
+            
+            // Initialize the game
+            this.init();
+        } catch (error) {
+            console.error('Error initializing localization:', error);
+            // Fallback: still initialize the game even if localization fails
+            this.init();
+        }
+    }
     /**
      * Initialize the game
      */
@@ -64,9 +104,256 @@ export class Game {
         // Set up leaderboard tabs
         this.setupLeaderboardTabs();
 
+        // Set up language switcher
+        this.setupLanguageSwitcher();
+
+        // Update UI with current language
+        this.updateUI();
+
         // Start new game
         this.startNewGame();
     }
+
+    /**
+     * Set up language switcher
+     */
+    setupLanguageSwitcher() {
+        // Create language selector in settings menu
+        const settingsMenu = document.getElementById('settings-menu');
+        if (!settingsMenu) return;
+
+        // Add language option to settings
+        const languageOption = document.createElement('div');
+        languageOption.className = 'settings-option';
+
+        // Create label
+        const label = document.createElement('span');
+        label.id = 'language-label';
+        label.textContent = this.localization.get('language');
+
+        // Create dropdown
+        const select = document.createElement('select');
+        select.id = 'language-select';
+
+        // Add options for each language
+        const languages = this.localization.getAvailableLanguages();
+        Object.keys(languages).forEach(langCode => {
+            const option = document.createElement('option');
+            option.value = langCode;
+            option.textContent = languages[langCode];
+
+            // Set current language as selected
+            if (langCode === this.localization.currentLanguage) {
+                option.selected = true;
+            }
+
+            select.appendChild(option);
+        });
+
+        // Add event listener for language change
+        select.addEventListener('change', () => {
+            this.localization.setLanguage(select.value);
+        });
+
+        // Add elements to settings menu
+        languageOption.appendChild(label);
+        languageOption.appendChild(select);
+        settingsMenu.appendChild(languageOption);
+    }
+    /**
+        * Update UI elements with localized text
+        */
+    updateUI() {
+        // Update page title
+        document.title = this.localization.get('game_title');
+
+        // Update headings
+        const headings = document.querySelectorAll('h1, h2, h3');
+        headings.forEach(heading => {
+            if (heading.dataset.locKey) {
+                heading.textContent = this.localization.get(heading.dataset.locKey);
+            }
+        });
+
+        // Update buttons
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(button => {
+            if (button.dataset.locKey) {
+                button.textContent = this.localization.get(button.dataset.locKey);
+            }
+        });
+
+        // Update specific elements
+        this.updateSpecificElements();
+
+        // Update settings menu
+        this.updateSettingsMenu();
+
+        // Update tutorial
+        this.updateTutorial();
+
+        // Update leaderboard
+        this.updateLeaderboardUI();
+    }
+    /**
+  * Update specific UI elements with localized text
+  */
+    updateSpecificElements() {
+        // Game title
+        const gameTitle = document.querySelector('h1');
+        if (gameTitle) {
+            gameTitle.textContent = this.localization.get('game_title');
+        }
+
+        // Score label
+        const scoreLabel = document.querySelector('.score');
+        if (scoreLabel) {
+            // Get the current score value
+            const scoreValue = document.getElementById('score').textContent;
+
+            // Clear the element
+            scoreLabel.innerHTML = '';
+
+            // Create the text node with localized label
+            const textNode = document.createTextNode(this.localization.get('score') + ': ');
+            scoreLabel.appendChild(textNode);
+
+            // Create the span for the value
+            const scoreSpan = document.createElement('span');
+            scoreSpan.id = 'score';
+            scoreSpan.textContent = scoreValue;
+            scoreLabel.appendChild(scoreSpan);
+        }
+
+        // Highest die label
+        const highestLabel = document.querySelector('.highest-die');
+        if (highestLabel) {
+            // Get the current highest value
+            const highestValue = document.getElementById('highest-die').textContent;
+
+            // Clear the element
+            highestLabel.innerHTML = '';
+
+            // Create the text node with localized label
+            const textNode = document.createTextNode(this.localization.get('highest') + ': ');
+            highestLabel.appendChild(textNode);
+
+            // Create the span for the value
+            const highestSpan = document.createElement('span');
+            highestSpan.id = 'highest-die';
+            highestSpan.textContent = highestValue;
+            highestLabel.appendChild(highestSpan);
+        }
+
+        // Add die button
+        const addDieBtn = document.getElementById('add-die-btn');
+        if (addDieBtn) {
+            addDieBtn.textContent = this.localization.get('add_dice');
+        }
+
+        // New game button
+        const newGameBtn = document.getElementById('new-game-btn');
+        if (newGameBtn) {
+            newGameBtn.textContent = this.localization.get('new_game');
+        }
+
+        // Game over screen
+        const gameOverTitle = document.querySelector('#game-over h2');
+        if (gameOverTitle) {
+            gameOverTitle.textContent = this.localization.get('game_over');
+        }
+
+        // Final score
+        const finalScoreText = document.querySelector('#game-over p:nth-child(2)');
+        if (finalScoreText) {
+            // Get the current score value
+            const finalScoreValue = document.getElementById('final-score').textContent;
+
+            // Clear the element
+            finalScoreText.innerHTML = '';
+
+            // Create the text node with localized label
+            const textNode = document.createTextNode(this.localization.get('final_score') + ': ');
+            finalScoreText.appendChild(textNode);
+
+            // Create the span for the value
+            const finalScoreSpan = document.createElement('span');
+            finalScoreSpan.id = 'final-score';
+            finalScoreSpan.textContent = finalScoreValue;
+            finalScoreText.appendChild(finalScoreSpan);
+        }
+
+        // Final highest die
+        const finalHighestText = document.querySelector('#game-over p:nth-child(3)');
+        if (finalHighestText) {
+            // Get the current highest value
+            const finalHighestValue = document.getElementById('final-highest').textContent;
+
+            // Clear the element
+            finalHighestText.innerHTML = '';
+
+            // Create the text node with localized label
+            const textNode = document.createTextNode(this.localization.get('highest_die') + ': ');
+            finalHighestText.appendChild(textNode);
+
+            // Create the span for the value
+            const finalHighestSpan = document.createElement('span');
+            finalHighestSpan.id = 'final-highest';
+            finalHighestSpan.textContent = finalHighestValue;
+            finalHighestText.appendChild(finalHighestSpan);
+        }
+
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            restartBtn.textContent = this.localization.get('play_again');
+        }
+    }
+    /**
+     * Update settings menu
+     */
+    updateSettingsMenu() {
+        // Settings title
+        const settingsTitle = document.querySelector('#settings-menu h3');
+        if (settingsTitle) {
+            settingsTitle.textContent = this.localization.get('settings');
+        }
+
+        // Sound label
+        const soundLabel = document.querySelector('#settings-menu .settings-option:first-child span');
+        if (soundLabel) {
+            soundLabel.textContent = this.localization.get('sound');
+        }
+
+        // Language label
+        const languageLabel = document.getElementById('language-label');
+        if (languageLabel) {
+            languageLabel.textContent = this.localization.get('language');
+        }
+    }
+
+    /**
+     * Update tutorial text
+     */
+    updateTutorial() {
+        // Tutorial title
+        const tutorialTitle = document.querySelector('.tutorial h3');
+        if (tutorialTitle) {
+            tutorialTitle.textContent = this.localization.get('tutorial_title');
+        }
+
+        // Tutorial steps
+        const tutorialSteps = document.querySelectorAll('.tutorial p');
+        tutorialSteps.forEach((step, index) => {
+            step.textContent = this.localization.get(`tutorial_${index + 1}`);
+        });
+
+        // Got it button
+        const gotItBtn = document.getElementById('close-tutorial');
+        if (gotItBtn) {
+            gotItBtn.textContent = this.localization.get('got_it');
+        }
+    }
+
 
     /**
      * Set up the add die button
@@ -74,16 +361,57 @@ export class Game {
     setupAddDieButton() {
         // Get reference to the existing button
         const addDieBtn = document.getElementById('add-die-btn');
-
+    
         if (addDieBtn) {
             // Add event listener
             addDieBtn.addEventListener('click', () => this.addRandomDie());
-
+    
+            // Update text with localization and adjust for length
+            this.updateAddDieButtonText(addDieBtn);
+    
             // Initial button state
             this.updateAddDieButton();
         }
     }
-
+    /**
+     * Update the add die button text and adjust styling if needed
+     * @param {HTMLElement} button - The button element 
+     */
+    updateAddDieButtonText(button) {
+        if (!button) return;
+        
+        // Get localized text
+        const localizedText = this.localization.get('add_dice');
+        button.textContent = localizedText;
+        
+        // Check text length and adjust style for long text
+        if (localizedText.length > 12) {
+            button.classList.add('long-text');
+        } else {
+            button.classList.remove('long-text');
+        }
+    }
+    /**
+     * Handle language change for the add die button
+     */
+    onLanguageChange() {
+        // Update all UI text
+        this.updateUI();
+        
+        // Update the add die button text specifically
+        const addDieBtn = document.getElementById('add-die-btn');
+        if (addDieBtn) {
+            this.updateAddDieButtonText(addDieBtn);
+        }
+        
+        // Update the game title
+        const gameTitle = document.querySelector('h1');
+        if (gameTitle) {
+            gameTitle.textContent = this.localization.get('game_title');
+        }
+        
+        // Any other language-specific adjustments can go here
+    }
     /**
      * Start a new game
      */
@@ -117,19 +445,19 @@ export class Game {
         this.gameOver = false;
         this.lastLeaderboardUpdate = 0;
         this.scoreChanged = false;
-    
+
         // Clear all cells in UI
         this.ui.resetBoard();
-    
+
         // Add initial dice
         for (let i = 0; i < this.initialDice; i++) {
             this.addRandomDie();
         }
-    
+
         // Update displays
         this.ui.updateScore(this.score, this.highestDie);
         this.ui.hideGameOver();
-    
+
         // Enable/disable add die button based on available space
         this.updateAddDieButton();
     }
@@ -200,61 +528,63 @@ export class Game {
     mergeDice(index1, index2) {
         // Get the value of the dice being merged
         const value = this.board[index1];
-    
+
         // Create a new die with value + 1
         const newValue = value + 1;
-    
+
         // Remove dice from both cells
         this.board[index1] = null;
         this.board[index2] = null;
-    
+
         // Update UI
         this.ui.clearCell(index1);
         this.ui.clearCell(index2);
-    
+
         // Place new die in the second cell
         this.board[index2] = newValue;
         this.ui.renderDie(index2, newValue);
         this.ui.animateMerge(index2);
-    
+
         // Play merge sound
         this.audio.playSound('merge');
-    
+
         // Update score
         this.score += newValue * 2;
-        
+
         // Save score after each merge
         this.saveScore();
-        
+
         this.moveCount++;
-    
+
         // Update highest die if needed
         if (newValue > this.highestDie) {
             this.highestDie = newValue;
-            
+
             // Play upgrade sound for new highest die
             this.audio.playSound('upgrade');
-            
-            // Display achievement message for new highest die
-            this.ui.showMessage(`New record: ${newValue}!`);
+
+            // Display localized achievement message for new highest die
+            const message = this.localization.get('new_record', { value: newValue });
+            this.ui.showMessage(message);
             setTimeout(() => this.ui.hideMessage(), 2000);
         }
-    
+
         // Clear selection
         this.ui.deselectCell(index1);
         this.selectedCell = null;
-    
+
         // Update displays
         this.ui.updateScore(this.score, this.highestDie);
-    
-        // Update add die button state
+
+        // Update add die button
         this.updateAddDieButton();
-    
+
         // Check if game is over
         if (this.isGameOver()) {
             this.handleGameOver();
         }
     }
+
 
     /**
      * Add a random die to an empty cell
@@ -338,8 +668,11 @@ export class Game {
             this.updateYandexLeaderboard();
         }
 
-        // Show game over screen
-        this.ui.showGameOver(this.score, this.highestDie);
+        // Show game over screen with localized text
+        this.ui.showGameOver(
+            this.score,
+            this.highestDie
+        );
 
         // Disable add die button
         this.updateAddDieButton();
@@ -389,6 +722,10 @@ export class Game {
             this.lastLeaderboardUpdate = now;
         }
     }
+    /**
+     * Update Yandex leaderboard with the current score,
+     * but only if it's higher than the existing score
+     */
     updateYandexLeaderboard() {
         // Only update if score has changed since last update
         if (!this.scoreChanged || this.score <= 0) return;
@@ -396,7 +733,7 @@ export class Game {
         // Reset the flag
         this.scoreChanged = false;
         
-        // If Yandex SDK is available, check and save score there
+        // If Yandex SDK is available, check and save score
         if (this.yandexSDK && this.yandexSDK.initialized) {
             console.log('Checking if score qualifies for leaderboard update:', this.score);
             
@@ -407,33 +744,43 @@ export class Game {
                     if (currentScore !== null) {
                         if (this.score > currentScore) {
                             console.log(`Updating leaderboard: ${this.score} > ${currentScore}`);
-                            this.yandexSDK.saveScore(this.score)
-                                .then(success => {
-                                    if (success) {
-                                        console.log('New high score saved to leaderboard!');
-                                        // Optionally show a message to the player
-                                        this.ui.showMessage("New high score!");
-                                        setTimeout(() => this.ui.hideMessage(), 2000);
-                                    }
-                                })
-                                .catch(err => console.warn('Failed to save new high score:', err));
+                            this.saveScoreToLeaderboard();
                         } else {
                             console.log(`Not updating leaderboard: ${this.score} <= ${currentScore}`);
+                            // Don't update if the current score is not higher
                         }
                     } else {
-                        // No current score, this is first time, so save
+                        // No current score found, this is first time, so save
                         console.log('No previous score found, saving first score to leaderboard');
-                        this.yandexSDK.saveScore(this.score)
-                            .catch(err => console.warn('Failed to save first score:', err));
+                        this.saveScoreToLeaderboard();
                     }
                 })
                 .catch(error => {
                     console.warn('Error checking player score:', error);
-                    // On error checking score, try to save score anyway as a fallback
-                    this.yandexSDK.saveScore(this.score)
-                        .catch(err => console.warn('Failed to save fallback score:', err));
+                    // On error checking score, we'll still try to save the score
+                    // The Yandex SDK should prevent lower scores from overwriting higher ones
+                    this.saveScoreToLeaderboard();
                 });
         }
+    }
+    /**
+     * Helper method to save the score to the leaderboard
+     * and show appropriate UI feedback
+     */
+    saveScoreToLeaderboard() {
+        this.yandexSDK.saveScore(this.score)
+            .then(success => {
+                if (success) {
+                    console.log('Score saved to leaderboard!');
+                    // Show message only when game is over
+                    if (this.gameOver) {
+                        const message = this.localization.get('new_high_score');
+                        this.ui.showMessage(message);
+                        setTimeout(() => this.ui.hideMessage(), 2000);
+                    }
+                }
+            })
+            .catch(err => console.warn('Failed to save score:', err));
     }
     /**
      * Get high scores
@@ -445,6 +792,24 @@ export class Game {
     updateLeaderboardUI() {
         const leaderboardBody = document.getElementById('leaderboard-tbody');
         const noScoresMessage = document.getElementById('no-scores-message');
+        const leaderboardTitle = document.querySelector('.leaderboard-content h2');
+        const leaderboardDescription = document.querySelector('.leaderboard-description');
+        const closeButton = document.getElementById('close-leaderboard');
+
+        // Update static text elements
+        if (leaderboardTitle) {
+            leaderboardTitle.textContent = `${this.localization.get('game_title')} ${this.localization.get('leaderboard')}`;
+        }
+
+        if (leaderboardDescription) {
+            leaderboardDescription.textContent = this.localization.get('leaderboard_description', {
+                game: this.localization.get('game_title')
+            });
+        }
+
+        if (closeButton) {
+            closeButton.textContent = this.localization.get('close');
+        }
 
         if (!leaderboardBody || !noScoresMessage) return;
 
@@ -454,6 +819,7 @@ export class Game {
         // Show no scores message if there are no scores
         if (this.highScores.length === 0) {
             noScoresMessage.style.display = 'block';
+            noScoresMessage.textContent = this.localization.get('no_scores_message');
             return;
         } else {
             noScoresMessage.style.display = 'none';
@@ -482,58 +848,73 @@ export class Game {
 
             leaderboardBody.appendChild(row);
         });
+
+        // Update the table headers
+        const tableHeaders = document.querySelectorAll('#leaderboard-table th');
+        if (tableHeaders.length >= 4) {
+            tableHeaders[0].textContent = this.localization.get('rank');
+            tableHeaders[1].textContent = this.localization.get('score');
+            tableHeaders[2].textContent = this.localization.get('highest_die');
+            // Keep date column as is
+        }
     }
 
+
     /**
-    * Set up leaderboard tabs
-     */
+      * Set up leaderboard tabs with localized text
+      */
     setupLeaderboardTabs() {
         const shareScoreBtn = document.getElementById('share-score-btn');
         const leaderboardModal = document.getElementById('leaderboard-modal');
         const closeLeaderboardBtn = document.getElementById('close-leaderboard');
+        const leaderboardBtn = document.getElementById('leaderboard-btn');
 
         // Set up share button
         if (shareScoreBtn) {
+            shareScoreBtn.textContent = this.localization.get('share_score');
             shareScoreBtn.addEventListener('click', () => this.shareScore());
         }
 
         // Close button
         if (closeLeaderboardBtn) {
+            closeLeaderboardBtn.textContent = this.localization.get('close');
             closeLeaderboardBtn.addEventListener('click', () => {
                 leaderboardModal.style.display = 'none';
             });
         }
 
         // When leaderboard is opened, immediately try to load global scores
-        document.getElementById('leaderboard-btn').addEventListener('click', () => {
-            const globalLeaderboard = document.getElementById('global-leaderboard');
-            leaderboardModal.style.display = 'flex';
+        if (leaderboardBtn) {
+            leaderboardBtn.addEventListener('click', () => {
+                const globalLeaderboard = document.getElementById('global-leaderboard');
+                leaderboardModal.style.display = 'flex';
 
-            // Show loading message
-            globalLeaderboard.innerHTML = '<div class="loading-leaderboard">Loading leaderboard data...</div>';
+                // Show loading message
+                globalLeaderboard.innerHTML = `<div class="loading-leaderboard">${this.localization.get('loading_leaderboard')}</div>`;
 
-            // Try to fetch and display the Yandex leaderboard
-            if (this.yandexSDK && this.yandexSDK.initialized) {
-                this.yandexSDK.showLeaderboard().catch(error => {
-                    console.warn('Failed to display Yandex leaderboard:', error);
+                // Try to fetch and display the Yandex leaderboard
+                if (this.yandexSDK && this.yandexSDK.initialized) {
+                    this.yandexSDK.showLeaderboard(this.localization).catch(error => {
+                        console.warn('Failed to display Yandex leaderboard:', error);
 
-                    // Show error message
-                    globalLeaderboard.innerHTML = `
+                        // Show error message
+                        globalLeaderboard.innerHTML = `
                         <div class="error-message">
-                            <p>Could not load leaderboard data.</p>
+                            <p>${this.localization.get('error_loading')}</p>
                             <p>Error: ${error.message || 'Unknown error'}</p>
                         </div>
                     `;
-                });
-            } else {
-                globalLeaderboard.innerHTML = `
+                    });
+                } else {
+                    globalLeaderboard.innerHTML = `
                     <div class="global-leaderboard-message">
-                        Leaderboard is only available when running in Yandex Games.
-                        <p>Currently running in local/development mode.</p>
+                        ${this.localization.get('leaderboard_unavailable')}
+                        <p>${this.localization.get('dev_mode')}</p>
                     </div>
                 `;
-            }
-        });
+                }
+            });
+        }
     }
 
     /**
@@ -541,40 +922,42 @@ export class Game {
      */
     shareScore() {
         if (!this.score) {
-            this.ui.showMessage("Play a game first to share your score!");
+            this.ui.showMessage(this.localization.get('play_first'));
             setTimeout(() => this.ui.hideMessage(), 2000);
             return;
         }
 
+        // Get localized share text with score and highest die values
+        const shareText = this.localization.get('share_text', {
+            score: this.score,
+            highestDie: this.highestDie
+        });
+
         // Try to use the Web Share API if available
         if (navigator.share) {
             navigator.share({
-                title: 'Dice Dynasty Score',
-                text: `I just scored ${this.score} points in Dice Dynasty with a highest die of ${this.highestDie}! Can you beat it?`,
+                title: this.localization.get('game_title'),
+                text: shareText,
                 url: window.location.href
             }).catch(error => {
                 console.warn('Error sharing:', error);
             });
         } else {
             // Fallback: copy to clipboard
-            const text = `I just scored ${this.score} points in Dice Dynasty with a highest die of ${this.highestDie}! Can you beat it?`;
-
-            // Create a temporary textarea
             const textarea = document.createElement('textarea');
-            textarea.value = text;
+            textarea.value = shareText;
             document.body.appendChild(textarea);
             textarea.select();
 
             try {
                 document.execCommand('copy');
-                this.ui.showMessage("Score copied to clipboard!");
+                this.ui.showMessage(this.localization.get('score_copied'));
             } catch (err) {
-                this.ui.showMessage("Couldn't copy score");
+                this.ui.showMessage(this.localization.get('error_copying'));
             }
 
             document.body.removeChild(textarea);
             setTimeout(() => this.ui.hideMessage(), 2000);
         }
     }
-
 }

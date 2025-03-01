@@ -68,3 +68,25 @@ export function loadFromLocalStorage(key, defaultValue) {
 export function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
+/**
+ * Helper function to setup document direction based on language
+ * @param {string} language - The language code
+ */
+export function setupDocumentDirection(language) {
+    // List of RTL languages
+    const rtlLanguages = ['ar', 'fa', 'he', 'ur', 'yi', 'dv'];
+    
+    // Set document direction
+    const isRtl = rtlLanguages.includes(language);
+    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+    
+    // Add language attribute
+    document.documentElement.lang = language;
+    
+    // Add RTL class if needed
+    if (isRtl) {
+        document.body.classList.add('rtl');
+    } else {
+        document.body.classList.remove('rtl');
+    }
+}

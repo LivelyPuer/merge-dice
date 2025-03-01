@@ -1,0 +1,33 @@
+key,en,ru,tr,de,fr,es
+game_title,Dice Dynasty,Династия Кубиков,Zar Hanedanlığı,Würfel Dynastie,Dynastie des Dés,Dinastía de Dados
+new_game,New Game,Новая игра,Yeni Oyun,Neues Spiel,Nouveau Jeu,Nuevo Juego
+score,Score,Очки,Puan,Punktzahl,Score,Puntuación
+highest,Highest,Рекорд,En Yüksek,Höchste,Plus Haut,Más Alto
+add_dice,Add Dice,Добавить кубик,Zar Ekle,Würfel Hinzufügen,Ajouter Dé,Añadir Dado
+game_over,Game Over,Игра окончена,Oyun Bitti,Spiel Vorbei,Partie Terminée,Juego Terminado
+final_score,Final Score,Итоговый счет,Son Puan,Endpunktzahl,Score Final,Puntuación Final
+highest_die,Highest Die,Наивысший кубик,En Yüksek Zar,Höchster Würfel,Dé le Plus Élevé,Dado Más Alto
+play_again,Play Again,Играть снова,Tekrar Oyna,Nochmal Spielen,Rejouer,Jugar de Nuevo
+settings,Settings,Настройки,Ayarlar,Einstellungen,Paramètres,Configuración
+sound,Sound,Звук,Ses,Ton,Son,Sonido
+leaderboard,Leaderboard,Таблица лидеров,Skor Tablosu,Bestenliste,Classement,Tabla de Clasificación
+tutorial_title,How to Play,Как играть,Nasıl Oynanır,Spielanleitung,Comment Jouer,Cómo Jugar
+tutorial_1,Click on a die to select it,Нажмите на кубик чтобы выбрать его,Seçmek için bir zara tıklayın,Klicke auf einen Würfel um ihn auszuwählen,Cliquez sur un dé pour le sélectionner,Haz clic en un dado para seleccionarlo
+tutorial_2,Or drag and drop a die onto another identical die to merge them,Или перетащите кубик на другой такой же кубик чтобы объединить их,Veya birleştirmek için bir zarı başka aynı zara sürükleyip bırakın,Oder ziehe einen Würfel auf einen identischen Würfel um sie zu verbinden,Ou faites glisser un dé sur un autre dé identique pour les fusionner,O arrastra y suelta un dado sobre otro dado idéntico para fusionarlos
+tutorial_3,Merged dice level up (1+1=2 2+2=3 etc.),Объединенные кубики повышаются в уровне (1+1=2 2+2=3 и т.д.),Birleştirilmiş zarlar seviye atlar (1+1=2 2+2=3 vb.),Verbundene Würfel steigen auf (1+1=2 2+2=3 usw.),Les dés fusionnés montent de niveau (1+1=2 2+2=3 etc.),Los dados fusionados suben de nivel (1+1=2 2+2=3 etc.)
+tutorial_4,Try to create the highest value dice!,Попробуйте создать кубик с наивысшим значением!,En yüksek değerli zarı oluşturmaya çalışın!,Versuche den höchstwertigen Würfel zu erstellen!,Essayez de créer le dé de la plus haute valeur!,¡Intenta crear el dado de mayor valor!
+tutorial_5,Use the "Add Dice" button to add more dice to the board,Используйте кнопку "Добавить кубик" чтобы добавить больше кубиков на поле,Tahtaya daha fazla zar eklemek için "Zar Ekle" düğmesini kullanın,Benutze den "Würfel Hinzufügen" Knopf um mehr Würfel hinzuzufügen,Utilisez le bouton "Ajouter Dé" pour ajouter plus de dés au plateau,Usa el botón "Añadir Dado" para agregar más dados al tablero
+got_it,Got it!,Понятно!,Anladım!,Verstanden!,Compris!,¡Entendido!
+language,Language,Язык,Dil,Sprache,Langue,Idioma
+close,Close,Закрыть,Kapat,Schließen,Fermer,Cerrar
+no_scores_message,No scores available yet. Be the first to submit your score!,Пока нет доступных очков. Будьте первым кто отправит свой результат!,Henüz puan yok. Puanınızı gönderen ilk kişi olun!,Noch keine Punktzahlen verfügbar. Sei der Erste der seine Punktzahl einreicht!,Pas encore de scores disponibles. Soyez le premier à soumettre votre score!,No hay puntuaciones disponibles todavía. ¡Sé el primero en enviar tu puntuación!
+loading_leaderboard,Loading leaderboard data...,Загрузка данных таблицы лидеров...,Skor tablosu verileri yükleniyor...,Bestenliste wird geladen...,Chargement du classement...,Cargando datos de la tabla de clasificación...
+rank,Rank,Ранг,Sıralama,Rang,Rang,Rango
+player,Player,Игрок,Oyuncu,Spieler,Joueur,Jugador
+you,You,Вы,Sen,Du,Vous,Tú
+error_loading,Error loading data. Please try again.,Ошибка загрузки данных. Пожалуйста попробуйте снова.,Veri yüklenirken hata oluştu. Lütfen tekrar deneyin.,Fehler beim Laden der Daten. Bitte versuche es erneut.,Erreur lors du chargement des données. Veuillez réessayer.,Error al cargar datos. Por favor intenta de nuevo.
+share_score,Share Score,Поделиться счетом,Puanı Paylaş,Punktzahl Teilen,Partager Score,Compartir Puntuación
+share_text,I just scored {score} points in Dice Dynasty with a highest die of {highestDie}! Can you beat it?,Я только что набрал {score} очков в Династии Кубиков с наивысшим кубиком {highestDie}! Сможешь побить?,Dice Dynasty'de en yüksek {highestDie} zar ile {score} puan aldım! Beni yenebilir misin?,Ich habe gerade {score} Punkte in Dice Dynasty mit einem höchsten Würfel von {highestDie} erzielt! Kannst du das schlagen?,Je viens de marquer {score} points dans Dynastie des Dés avec un dé le plus élevé de {highestDie}! Pouvez-vous me battre?,¡Acabo de conseguir {score} puntos en Dinastía de Dados con un dado más alto de {highestDie}! ¿Puedes superarlo?
+score_copied,Score copied to clipboard!,Счет скопирован в буфер обмена!,Puan panoya kopyalandı!,Punktzahl in die Zwischenablage kopiert!,Score copié dans le presse-papiers!,¡Puntuación copiada al portapapeles!
+new_record,New record: {value}!,Новый рекорд: {value}!,Yeni rekor: {value}!,Neuer Rekord: {value}!,Nouveau record: {value}!,¡Nuevo récord: {value}!
+new_high_score,New high score!,Новый рекорд!,Yeni yüksek puan!,Neue Höchstpunktzahl!,Nouveau meilleur score!,¡Nueva puntuación máxima!

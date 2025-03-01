@@ -37,25 +37,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Leaderboard button functionality
-    const leaderboardBtn = document.getElementById('leaderboard-btn');
-    const leaderboardModal = document.getElementById('leaderboard-modal');
-    
-    if (leaderboardBtn && leaderboardModal) {
-        const closeLeaderboard = document.getElementById('close-leaderboard');
-        if (closeLeaderboard) {
-            closeLeaderboard.addEventListener('click', () => {
-                leaderboardModal.style.display = 'none';
-            });
-        }
-    }
-
-    // Add keyboard shortcut for leaderboard (L key)
+    // Add keyboard shortcuts
     document.addEventListener('keydown', (event) => {
+        // Leaderboard - L key
         if (event.key === 'l' || event.key === 'L') {
-            leaderboardBtn.click();
+            const leaderboardBtn = document.getElementById('leaderboard-btn');
+            if (leaderboardBtn) leaderboardBtn.click();
+        }
+        
+        // Settings - S key
+        if (event.key === 's' || event.key === 'S') {
+            if (settingsBtn) settingsBtn.click();
+        }
+        
+        // New Game - N key
+        if (event.key === 'n' || event.key === 'N') {
+            const newGameBtn = document.getElementById('new-game-btn');
+            if (newGameBtn) newGameBtn.click();
+        }
+        
+        // Add Die - A key
+        if (event.key === 'a' || event.key === 'A') {
+            const addDieBtn = document.getElementById('add-die-btn');
+            if (addDieBtn && !addDieBtn.disabled) addDieBtn.click();
         }
     });
+    
+    // Save pending updates when page is hidden or closed
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
             // Game is being hidden/backgrounded, ensure scores are saved

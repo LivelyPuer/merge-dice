@@ -1,8 +1,8 @@
 import { UI } from './ui';
 import { AudioManager } from './audio';
 import { getRandomInt, saveToLocalStorage, loadFromLocalStorage } from './utils';
-import { YandexSDK } from './yandexSDK';
 import { Localization } from './localization';
+import { CrazyGamesSDK } from './crazyGamesSDK';
 
 /**
  * Main game class that manages the game state and logic
@@ -44,20 +44,21 @@ export class Game {
         // Initialize localization first with default settings
         this.localization = new Localization();
 
-        // Initialize Yandex SDK
-        this.yandexSDK = new YandexSDK(this);
+        // Initialize Crazy Games SDK
+        this.crazyGamesSDK = new CrazyGamesSDK(this);
 
         // Wait for SDK initialization before starting the game
         this.waitForSDKInitialization();
     }
+
     /*
-    * Wait for the Yandex SDK to initialize before proceeding
-    */
+     * Wait for the SDK to initialize before proceeding
+     */
     waitForSDKInitialization() {
         // Define a check function
         const checkSDKInit = () => {
-            if (this.yandexSDK.initialized) {
-                // SDK is initialized, now initialize localization with SDK
+            if (this.crazyGamesSDK.initialized) {
+                // SDK is initialized, now initialize localization
                 this.initLocalization();
             } else {
                 // Check again after a short delay
@@ -70,12 +71,12 @@ export class Game {
     }
 
     /**
-  * Initialize localization
-  */
+     * Initialize localization
+     */
     async initLocalization() {
         try {
-            // Initialize localization with Yandex SDK
-            await this.localization.init(this.yandexSDK);
+            // Initialize localization without Yandex SDK
+            await this.localization.init();
 
             // Register for language change events
             document.addEventListener('languageChanged', () => {
@@ -90,6 +91,7 @@ export class Game {
             this.init();
         }
     }
+
     /**
      * Initialize the game
      */
@@ -112,8 +114,45 @@ export class Game {
 
         // Start new game
         this.startNewGame();
-    }
 
+        // Force gameplay start - Call this a few seconds after game is ready
+        setTimeout(() => {
+            this.triggerGameplayStart();
+        }, 1000);
+    }
+    triggerGameplayStart() {
+        // Only trigger if the game is in a playable state
+        if (this.gameOver) return;
+
+        console.log('Game is in playable state, triggering gameplay start event');
+
+        if (this.crazyGamesSDK && this.crazyGamesSDK.initialized) {
+            // Call the gameplay start method directly
+            this.crazyGamesSDK.forceGameplayStart();
+
+            // Add a visual indicator in QA mode to confirm the event was triggered
+            if (this.isQAEnvironment) {
+                const indicator = document.createElement('div');
+                indicator.style.position = 'fixed';
+                indicator.style.bottom = '10px';
+                indicator.style.left = '10px';
+                indicator.style.background = 'green';
+                indicator.style.color = 'white';
+                indicator.style.padding = '5px';
+                indicator.style.borderRadius = '5px';
+                indicator.style.zIndex = '9999';
+                indicator.textContent = '✅ Gameplay Start Triggered';
+                document.body.appendChild(indicator);
+
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    if (indicator.parentNode) {
+                        indicator.parentNode.removeChild(indicator);
+                    }
+                }, 5000);
+            }
+        }
+    }
     /**
      * Set up language switcher
      */
@@ -156,9 +195,10 @@ export class Game {
 
         console.log('Language switcher initialized with', Object.keys(languages).length, 'languages');
     }
+
     /**
-        * Update UI elements with localized text
-        */
+     * Update UI elements with localized text
+     */
     updateUI() {
         // Update page title
         document.title = this.localization.get('game_title');
@@ -191,9 +231,10 @@ export class Game {
         // Update leaderboard
         this.updateLeaderboardUI();
     }
+
     /**
-  * Update specific UI elements with localized text
-  */
+     * Update specific UI elements with localized text
+     */
     updateSpecificElements() {
         // Game title
         const gameTitle = document.querySelector('h1');
@@ -245,6 +286,12 @@ export class Game {
         const addDieBtn = document.getElementById('add-die-btn');
         if (addDieBtn) {
             addDieBtn.textContent = this.localization.get('add_dice');
+        }
+
+        // Watch ad button
+        const watchAdBtn = document.getElementById('watch-ad-btn');
+        if (watchAdBtn) {
+            watchAdBtn.textContent = this.localization.get('watch_ad_for_dice');
         }
 
         // New game button
@@ -304,6 +351,7 @@ export class Game {
             restartBtn.textContent = this.localization.get('play_again');
         }
     }
+
     /**
      * Update settings menu
      */
@@ -350,7 +398,6 @@ export class Game {
         }
     }
 
-
     /**
      * Set up the add die button
      */
@@ -369,6 +416,7 @@ export class Game {
             this.updateAddDieButton();
         }
     }
+
     /**
      * Update the add die button text and adjust styling if needed
      * @param {HTMLElement} button - The button element 
@@ -387,6 +435,7 @@ export class Game {
             button.classList.remove('long-text');
         }
     }
+
     /**
      * Handle language change for the add die button
      */
@@ -408,15 +457,16 @@ export class Game {
 
         // Any other language-specific adjustments can go here
     }
+
     /**
      * Start a new game
      */
     startNewGame() {
-        // First try to show an ad if Yandex SDK is initialized
-        if (this.yandexSDK && this.yandexSDK.initialized && typeof this.yandexSDK.showFullscreenAd === 'function') {
+        // Try to show an ad if Crazy Games SDK is initialized
+        if (this.crazyGamesSDK && this.crazyGamesSDK.initialized) {
             console.log('Attempting to show ad before starting new game');
             // We'll show an ad and then start a new game when it's closed
-            this.yandexSDK.showFullscreenAd()
+            this.crazyGamesSDK.showMidgameAd()
                 .then(result => {
                     console.log('Ad result:', result);
                     this.actuallyStartNewGame();
@@ -431,6 +481,10 @@ export class Game {
             this.actuallyStartNewGame();
         }
     }
+
+    /**
+     * Actually start a new game (after potentially showing an ad)
+     */
     actuallyStartNewGame() {
         // Reset game state
         this.board = Array(this.boardSize * this.boardSize).fill(null);
@@ -456,6 +510,24 @@ export class Game {
 
         // Enable/disable add die button based on available space
         this.updateAddDieButton();
+
+        // Track gameplay start directly using window object to ensure it works
+        try {
+            if (window.CrazyGames && window.CrazyGames.SDK &&
+                window.CrazyGames.SDK.game &&
+                typeof window.CrazyGames.SDK.game.gameplayStart === 'function') {
+
+                console.log('Calling gameplayStart directly from window');
+                window.CrazyGames.SDK.game.gameplayStart();
+            }
+        } catch (error) {
+            console.warn('Error calling direct gameplayStart:', error);
+        }
+
+        // Also try through our SDK wrapper
+        if (this.crazyGamesSDK && this.crazyGamesSDK.initialized) {
+            this.crazyGamesSDK.trackGameplayStart();
+        }
     }
 
     /**
@@ -484,6 +556,12 @@ export class Game {
      * @param {number} index - Index of the clicked cell
      */
     handleCellClick(index) {
+        if (this.crazyGamesSDK && this.crazyGamesSDK.initialized && !this.crazyGamesSDK.gameplayStarted) {
+            console.log('First interaction detected, triggering gameplay start');
+            this.crazyGamesSDK.forceGameplayStart();
+        }
+
+        // Rest of the existing method...
         if (this.gameOver) return;
 
         // If there's no die in this cell, ignore the click
@@ -581,7 +659,6 @@ export class Game {
         }
     }
 
-
     /**
      * Add a random die to an empty cell
      */
@@ -615,6 +692,136 @@ export class Game {
         // Check if game is over
         if (this.isGameOver()) {
             this.handleGameOver();
+        }
+    }
+
+    /**
+     * Add extra dice through a rewarded ad with improved SDK checks
+     */
+    addExtraDiceWithAd() {
+        // Check for CrazyGames SDK in window object first
+        const sdkAvailable = window.CrazyGames && window.CrazyGames.SDK;
+
+        // If SDK isn't available in window, check our reference
+        if (!sdkAvailable && (!this.crazyGamesSDK || !this.crazyGamesSDK.initialized)) {
+            console.warn('Cannot show rewarded ad: Crazy Games SDK not initialized');
+
+            // Show a user-friendly message instead of just failing silently
+            const message = this.localization && this.localization.isLoaded ?
+                this.localization.get('ad_not_available') :
+                'Ads not available right now. Try again later.';
+
+            this.ui.showMessage(message);
+            setTimeout(() => this.ui.hideMessage(), 2000);
+            return;
+        }
+
+        // Don't show ad if the board is full
+        const emptyCells = this.board.filter(cell => cell === null).length;
+        if (emptyCells === 0) {
+            // Show message that board is full
+            const message = this.localization && this.localization.isLoaded ?
+                this.localization.get('board_full') :
+                'Board is full!';
+
+            this.ui.showMessage(message);
+            setTimeout(() => this.ui.hideMessage(), 2000);
+            return;
+        }
+
+        // Show a loading message
+        const loadingMessage = this.localization && this.localization.isLoaded ?
+            this.localization.get('watching_ad') :
+            'Watching ad...';
+
+        this.ui.showMessage(loadingMessage);
+
+        // Reward function - add 3 dice when ad is completed
+        const giveReward = () => {
+            // Hide the loading message
+            this.ui.hideMessage();
+            
+            // Add the dice
+            let diceAdded = 0;
+            for (let i = 0; i < 3; i++) {
+                // Make sure there's still space on the board
+                if (this.board.includes(null)) {
+                    this.addRandomDie();
+                    diceAdded++;
+                } else {
+                    break;
+                }
+            }
+            
+            // Show reward message
+            const message = this.localization ? 
+                this.localization.get('extra_dice_added') : 
+                `+${diceAdded} Dice Added!`;
+                
+            this.ui.showMessage(message);
+            setTimeout(() => this.ui.hideMessage(), 2000);
+            
+            // Log reward claimed (removed trackEvent call)
+            console.log('Reward claimed: extra dice', diceAdded);
+        };
+
+        // Handle errors if the ad fails to show
+        const handleAdError = () => {
+            this.ui.hideMessage();
+
+            const errorMessage = this.localization && this.localization.isLoaded ?
+                this.localization.get('ad_error') :
+                'Could not show ad. Try again later.';
+
+            this.ui.showMessage(errorMessage);
+            setTimeout(() => this.ui.hideMessage(), 2000);
+        };
+
+        // Try showing the rewarded ad
+        try {
+            // Use the global SDK if available
+            if (sdkAvailable && (!this.crazyGamesSDK || !this.crazyGamesSDK.initialized)) {
+                console.log('Using global SDK for rewarded ad');
+
+                try {
+                    window.CrazyGames.SDK.ad.requestAd('rewarded');
+
+                    // Simple ad event handlers
+                    const onAdFinished = () => {
+                        window.CrazyGames.SDK.ad.removeEventListener('adFinished', onAdFinished);
+                        window.CrazyGames.SDK.ad.removeEventListener('adError', onAdError);
+                        giveReward();
+                    };
+
+                    const onAdError = (error) => {
+                        window.CrazyGames.SDK.ad.removeEventListener('adFinished', onAdFinished);
+                        window.CrazyGames.SDK.ad.removeEventListener('adError', onAdError);
+                        console.warn('Rewarded ad error:', error);
+                        handleAdError();
+                    };
+
+                    window.CrazyGames.SDK.ad.addEventListener('adFinished', onAdFinished);
+                    window.CrazyGames.SDK.ad.addEventListener('adError', onAdError);
+                } catch (error) {
+                    console.error('Error using global SDK for rewarded ad:', error);
+                    handleAdError();
+                }
+            } else {
+                // Use our SDK instance
+                this.crazyGamesSDK.showRewardedAd(giveReward)
+                    .then(success => {
+                        if (!success) {
+                            handleAdError();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error showing rewarded ad:', error);
+                        handleAdError();
+                    });
+            }
+        } catch (error) {
+            console.error('Unexpected error in addExtraDiceWithAd:', error);
+            handleAdError();
         }
     }
 
@@ -659,12 +866,25 @@ export class Game {
         this.gameOver = true;
         this.audio.playSound('gameover');
 
-        // Force an immediate update to the leaderboard with the final score
-        if (this.scoreChanged) {
-            this.updateYandexLeaderboard();
+        // Track gameplay stop using direct window access
+        try {
+            if (window.CrazyGames && window.CrazyGames.SDK &&
+                window.CrazyGames.SDK.game &&
+                typeof window.CrazyGames.SDK.game.gameplayStop === 'function') {
+
+                console.log('Calling gameplayStop directly from window');
+                window.CrazyGames.SDK.game.gameplayStop();
+            }
+        } catch (error) {
+            console.warn('Error calling direct gameplayStop:', error);
         }
 
-        // Show game over screen with localized text
+        // Also try through our SDK wrapper
+        if (this.crazyGamesSDK && this.crazyGamesSDK.initialized) {
+            this.crazyGamesSDK.trackGameplayStop();
+        }
+
+        // Show game over screen
         this.ui.showGameOver(
             this.score,
             this.highestDie
@@ -673,11 +893,13 @@ export class Game {
         // Disable add die button
         this.updateAddDieButton();
     }
+
+    /**
+     * Check pending updates
+     */
     checkPendingUpdates() {
-        // If there are pending score changes, force an update
-        if (this.scoreChanged) {
-            this.updateYandexLeaderboard();
-        }
+        // This function was previously used for Yandex SDK
+        // Now it's empty since we've removed Yandex integration
     }
 
     /**
@@ -710,74 +932,8 @@ export class Game {
 
         // Save to local storage
         saveToLocalStorage('diceHighScores', this.highScores);
-
-        // Check if it's time to update the leaderboard
-        const now = Date.now();
-        if (now - this.lastLeaderboardUpdate >= this.leaderboardUpdateInterval) {
-            this.updateYandexLeaderboard();
-            this.lastLeaderboardUpdate = now;
-        }
     }
-    /**
-     * Update Yandex leaderboard with the current score,
-     * but only if it's higher than the existing score
-     */
-    updateYandexLeaderboard() {
-        // Only update if score has changed since last update
-        if (!this.scoreChanged || this.score <= 0) return;
 
-        // Reset the flag
-        this.scoreChanged = false;
-
-        // If Yandex SDK is available, check and save score
-        if (this.yandexSDK && this.yandexSDK.initialized) {
-            console.log('Checking if score qualifies for leaderboard update:', this.score);
-
-            // First, try to get the player's current leaderboard score
-            this.yandexSDK.getPlayerLeaderboardScore()
-                .then(currentScore => {
-                    // If we have a current score, only update if new score is higher
-                    if (currentScore !== null) {
-                        if (this.score > currentScore) {
-                            console.log(`Updating leaderboard: ${this.score} > ${currentScore}`);
-                            this.saveScoreToLeaderboard();
-                        } else {
-                            console.log(`Not updating leaderboard: ${this.score} <= ${currentScore}`);
-                            // Don't update if the current score is not higher
-                        }
-                    } else {
-                        // No current score found, this is first time, so save
-                        console.log('No previous score found, saving first score to leaderboard');
-                        this.saveScoreToLeaderboard();
-                    }
-                })
-                .catch(error => {
-                    console.warn('Error checking player score:', error);
-                    // On error checking score, we'll still try to save the score
-                    // The Yandex SDK should prevent lower scores from overwriting higher ones
-                    this.saveScoreToLeaderboard();
-                });
-        }
-    }
-    /**
-     * Helper method to save the score to the leaderboard
-     * and show appropriate UI feedback
-     */
-    saveScoreToLeaderboard() {
-        this.yandexSDK.saveScore(this.score)
-            .then(success => {
-                if (success) {
-                    console.log('Score saved to leaderboard!');
-                    // Show message only when game is over
-                    if (this.gameOver) {
-                        const message = this.localization.get('new_high_score');
-                        this.ui.showMessage(message);
-                        setTimeout(() => this.ui.hideMessage(), 2000);
-                    }
-                }
-            })
-            .catch(err => console.warn('Failed to save score:', err));
-    }
     /**
      * Get high scores
      * @returns {Array} Array of high score objects
@@ -785,6 +941,10 @@ export class Game {
     getHighScores() {
         return this.highScores;
     }
+
+    /**
+     * Update leaderboard UI
+     */
     updateLeaderboardUI() {
         const leaderboardBody = document.getElementById('leaderboard-tbody');
         const noScoresMessage = document.getElementById('no-scores-message');
@@ -855,10 +1015,9 @@ export class Game {
         }
     }
 
-
     /**
-      * Set up leaderboard tabs with localized text
-      */
+     * Set up leaderboard tabs with localized text
+     */
     setupLeaderboardTabs() {
         const shareScoreBtn = document.getElementById('share-score-btn');
         const leaderboardModal = document.getElementById('leaderboard-modal');
@@ -879,35 +1038,49 @@ export class Game {
             });
         }
 
-        // When leaderboard is opened, immediately try to load global scores
+        // When leaderboard is opened, show local high scores
         if (leaderboardBtn) {
             leaderboardBtn.addEventListener('click', () => {
-                const globalLeaderboard = document.getElementById('global-leaderboard');
                 leaderboardModal.style.display = 'flex';
 
-                // Show loading message
-                globalLeaderboard.innerHTML = `<div class="loading-leaderboard">${this.localization.get('loading_leaderboard')}</div>`;
+                // Make sure the leaderboard has a proper structure for local scores
+                const globalLeaderboard = document.getElementById('global-leaderboard');
+                if (globalLeaderboard) {
+                    // Create a standard table structure if it doesn't exist
+                    if (!document.getElementById('leaderboard-table')) {
+                        const table = document.createElement('table');
+                        table.id = 'leaderboard-table';
+                        table.className = 'leaderboard-table';
 
-                // Try to fetch and display the Yandex leaderboard
-                if (this.yandexSDK && this.yandexSDK.initialized) {
-                    this.yandexSDK.showLeaderboard(this.localization).catch(error => {
-                        console.warn('Failed to display Yandex leaderboard:', error);
+                        const thead = document.createElement('thead');
+                        thead.innerHTML = `
+                            <tr>
+                                <th>${this.localization.get('rank')}</th>
+                                <th>${this.localization.get('score')}</th>
+                                <th>${this.localization.get('highest_die')}</th>
+                                <th>Date</th>
+                            </tr>
+                        `;
 
-                        // Show error message
-                        globalLeaderboard.innerHTML = `
-                        <div class="error-message">
-                            <p>${this.localization.get('error_loading')}</p>
-                            <p>Error: ${error.message || 'Unknown error'}</p>
-                        </div>
-                    `;
-                    });
-                } else {
-                    globalLeaderboard.innerHTML = `
-                    <div class="global-leaderboard-message">
-                        ${this.localization.get('leaderboard_unavailable')}
-                        <p>${this.localization.get('dev_mode')}</p>
-                    </div>
-                `;
+                        const tbody = document.createElement('tbody');
+                        tbody.id = 'leaderboard-tbody';
+
+                        table.appendChild(thead);
+                        table.appendChild(tbody);
+
+                        // No scores message
+                        const noScores = document.createElement('div');
+                        noScores.id = 'no-scores-message';
+                        noScores.className = 'no-scores-message';
+                        noScores.style.display = 'none';
+
+                        globalLeaderboard.innerHTML = '';
+                        globalLeaderboard.appendChild(table);
+                        globalLeaderboard.appendChild(noScores);
+                    }
+
+                    // Update the leaderboard with current scores
+                    this.updateLeaderboardUI();
                 }
             });
         }
@@ -955,5 +1128,133 @@ export class Game {
             document.body.removeChild(textarea);
             setTimeout(() => this.ui.hideMessage(), 2000);
         }
+    }
+    inviteFriends() {
+        if (!this.crazyGamesSDK || !this.crazyGamesSDK.initialized) {
+            console.warn('Cannot invite friends: SDK not initialized');
+            return;
+        }
+
+        // Get localized share text
+        const shareText = this.localization.get('share_text', {
+            score: this.score,
+            highestDie: this.highestDie
+        });
+
+        this.crazyGamesSDK.requestInviteLink({
+            title: this.localization.get('game_title'),
+            text: shareText
+        });
+    }
+
+    /**
+     * Add a method to save/load game data to the cloud
+     */
+    saveGameToCloud() {
+        if (!this.crazyGamesSDK || !this.crazyGamesSDK.initialized) {
+            return false;
+        }
+
+        const gameData = {
+            score: this.score,
+            highestDie: this.highestDie,
+            highScores: this.highScores,
+            lastPlayed: new Date().toISOString()
+        };
+
+        return this.crazyGamesSDK.saveGameData(gameData);
+    }
+
+    /**
+     * Load game data from cloud
+     */
+    async loadGameFromCloud() {
+        if (!this.crazyGamesSDK || !this.crazyGamesSDK.initialized) {
+            return false;
+        }
+
+        const gameData = await this.crazyGamesSDK.loadGameData();
+
+        if (gameData && gameData.highScores) {
+            this.highScores = gameData.highScores;
+            console.log('Loaded high scores from cloud');
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Request a banner ad
+     */
+    showBanner() {
+        if (this.crazyGamesSDK && this.crazyGamesSDK.initialized) {
+            this.crazyGamesSDK.requestBanner();
+        }
+    }
+
+    /**
+     * Override the checkPendingUpdates method to save to cloud
+     */
+    checkPendingUpdates() {
+        // If there are pending score changes, save to cloud
+        if (this.scoreChanged) {
+            this.saveGameToCloud();
+            this.scoreChanged = false;
+        }
+    }
+    ensureGameplayEventsTracked() {
+        try {
+            // Track gameplay start directly if SDK is available in window
+            if (window.CrazyGames && window.CrazyGames.SDK && 
+                window.CrazyGames.SDK.game && 
+                typeof window.CrazyGames.SDK.game.gameplayStart === 'function') {
+                
+                console.log('Tracking gameplay start directly with window.CrazyGames.SDK');
+                window.CrazyGames.SDK.game.gameplayStart();
+                
+                // Log for debugging
+                console.log('Gameplay started via direct window reference', {
+                    method: 'direct_window_reference',
+                    timestamp: Date.now()
+                });
+            }
+        } catch (error) {
+            console.warn('Error ensuring gameplay events are tracked:', error);
+        }
+    }
+    createFallbackSDK() {
+        console.log('Creating fallback SDK handlers');
+        
+        // Create a minimal crazyGamesSDK object to prevent errors
+        this.crazyGamesSDK = {
+            initialized: false,
+            showMidgameAd: () => {
+                console.log('Fallback: Cannot show midgame ad');
+                return Promise.resolve(false);
+            },
+            showRewardedAd: (callback) => {
+                console.log('Fallback: Cannot show rewarded ad');
+                return Promise.resolve(false);
+            },
+            trackGameplayStart: () => {
+                console.log('Fallback: Cannot track gameplay start');
+                // Try direct call as a last resort
+                if (window.CrazyGames && window.CrazyGames.SDK && 
+                    window.CrazyGames.SDK.game && 
+                    typeof window.CrazyGames.SDK.game.gameplayStart === 'function') {
+                    window.CrazyGames.SDK.game.gameplayStart();
+                }
+            },
+            trackGameplayStop: () => {
+                console.log('Fallback: Cannot track gameplay stop');
+                // Try direct call as a last resort
+                if (window.CrazyGames && window.CrazyGames.SDK && 
+                    window.CrazyGames.SDK.game && 
+                    typeof window.CrazyGames.SDK.game.gameplayStop === 'function') {
+                    window.CrazyGames.SDK.game.gameplayStop();
+                }
+            }
+        };
     }
 }

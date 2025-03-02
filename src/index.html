@@ -7,12 +7,115 @@
     <title>Dice Dynasty</title>
     <meta name="description" content="A merge dice puzzle game where you combine dice to create higher values">
     <meta name="author" content="Your Name">
-    <script src="https://yandex.ru/games/sdk/v2"></script>
+    <!-- Add Crazy Games SDK -->
+    <!-- Add this script after loading the Crazy Games SDK -->
+    <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
+    <script>
+        // Immediate attempt to trigger gameplay start
+        (function () {
+            const isQA = window.location.href.includes('qa.crazygames') ||
+                window.location.href.includes('dev.crazygames') ||
+                document.referrer.includes('qa.crazygames') ||
+                document.referrer.includes('dev.crazygames');
+
+            if (isQA) {
+                console.log('QA environment detected, ensuring gameplay events');
+            }
+
+            // Function to attempt gameplay start with retry
+            const retryGameplayStart = function (attemptCount) {
+                if (attemptCount > 10) return; // Give up after 10 attempts
+
+                console.log(`Gameplay start attempt ${attemptCount}`);
+
+                try {
+                    // Check if SDK is available with correct method
+                    if (window.CrazyGames && window.CrazyGames.SDK &&
+                        window.CrazyGames.SDK.game &&
+                        typeof window.CrazyGames.SDK.game.gameplayStart === 'function') {
+
+                        console.log('SDK found, calling gameplayStart directly');
+                        window.CrazyGames.SDK.game.gameplayStart();
+
+                        // Log event for debugging (removed trackEvent)
+                        console.log('Gameplay started from inline script', {
+                            method: 'inline_script',
+                            timestamp: Date.now()
+                        });
+                    } else {
+                        // SDK not ready or method not available, try again
+                        setTimeout(function () {
+                            retryGameplayStart(attemptCount + 1);
+                        }, 500);
+                    }
+                } catch (error) {
+                    console.error('Error in gameplay start attempt:', error);
+
+                    // Try again
+                    setTimeout(function () {
+                        retryGameplayStart(attemptCount + 1);
+                    }, 500);
+                }
+            };
+
+            // Start the retry process
+            retryGameplayStart(1);
+
+            // Add visibility change handler
+            document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'hidden') {
+                    try {
+                        if (window.CrazyGames && window.CrazyGames.SDK &&
+                            window.CrazyGames.SDK.game &&
+                            typeof window.CrazyGames.SDK.game.gameplayStop === 'function') {
+                            console.log('Visibility hidden: calling gameplayStop');
+                            window.CrazyGames.SDK.game.gameplayStop();
+                        }
+                    } catch (e) {
+                        console.warn('Error calling gameplayStop:', e);
+                    }
+                } else if (document.visibilityState === 'visible') {
+                    try {
+                        if (window.CrazyGames && window.CrazyGames.SDK &&
+                            window.CrazyGames.SDK.game &&
+                            typeof window.CrazyGames.SDK.game.gameplayStart === 'function') {
+                            console.log('Visibility visible: calling gameplayStart');
+                            window.CrazyGames.SDK.game.gameplayStart();
+                        }
+                    } catch (e) {
+                        console.warn('Error calling gameplayStart:', e);
+                    }
+                }
+            });
+        })();
+    </script>
+    <style>
+        /* Critical CSS for QA environment */
+        .game-board {
+            display: grid !important;
+            min-height: 300px !important;
+            min-width: 300px !important;
+            background-color: #4a3f56 !important;
+            border-radius: 10px !important;
+        }
+
+        .game-container {
+            display: block !important;
+        }
+
+        .game-controls {
+            display: flex !important;
+        }
+
+        /* Force visibility */
+        body * {
+            visibility: visible !important;
+        }
+    </style>
+
 </head>
 
 <body>
-
-
     <div class="game-container">
         <header>
             <h1 data-loc-key="game_title">Dice Dynasty</h1>
@@ -23,9 +126,6 @@
                 <span class="label" data-loc-key="score">Score</span>: <span id="score">0</span>
             </div>
             <button id="settings-btn" class="settings-btn">⚙️</button>
-
-
-
             <button id="leaderboard-btn" class="leaderboard-btn">🏆</button>
             <div class="highest-die">
                 <span class="label" data-loc-key="highest">Highest</span>: <span id="highest-die">1</span>
@@ -36,6 +136,8 @@
         <div class="game-controls">
             <button id="add-die-btn" class="add-die-btn" aria-label="Add die to the board" data-loc-key="add_dice">Add
                 Dice</button>
+            <button id="watch-ad-btn" class="watch-ad-btn" aria-label="Watch ad for extra dice"
+                data-loc-key="watch_ad_for_dice">Watch Ad for 3 Dice</button>
         </div>
     </div>
 
@@ -47,6 +149,7 @@
         <p>
             <span class="label" data-loc-key="highest_die">Highest Die</span>: <span id="final-highest">1</span>
         </p>
+        <button id="invite-game-over-btn" data-loc-key="invite_friends">Invite Friends</button>
         <button id="restart-btn" data-loc-key="play_again">Play Again</button>
     </div>
 
@@ -69,20 +172,36 @@
             </div>
 
             <div id="global-leaderboard" class="leaderboard-section">
-                <div class="global-leaderboard-message" data-loc-key="loading_leaderboard">
-                    Loading leaderboard data...
-                    <p>Please wait while we fetch the latest scores.</p>
+                <table id="leaderboard-table" class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th data-loc-key="rank">Rank</th>
+                            <th data-loc-key="score">Score</th>
+                            <th data-loc-key="highest_die">Highest Die</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-tbody">
+                        <!-- Table rows will be populated by JS -->
+                    </tbody>
+                </table>
+                <div id="no-scores-message" class="no-scores-message" data-loc-key="no_scores_message">
+                    No scores available yet. Be the first to submit your score!
                 </div>
             </div>
 
             <div class="leaderboard-actions">
+                <button id="invite-friends-btn" data-loc-key="invite_friends" class="invite-button">Invite
+                    Friends</button>
+                <button id="share-score-btn" data-loc-key="share_score" class="share-button">Share Score</button>
                 <button id="close-leaderboard" data-loc-key="close" class="close-button">Close</button>
             </div>
         </div>
     </div>
+
     <div id="settings-menu" class="settings-menu">
         <div class="settings-content">
-            <h3 data-loc-key="settings">Настройки</h3>
+            <h3 data-loc-key="settings">Settings</h3>
 
             <div class="settings-options">
                 <div class="settings-option">
@@ -91,7 +210,7 @@
                 </div>
 
                 <div class="settings-option">
-                    <span id="language-label" data-loc-key="language">Язык:</span>
+                    <span id="language-label" data-loc-key="language">Language:</span>
                     <select id="language-select">
                         <!-- Language options will be populated by JS -->
                     </select>
@@ -103,10 +222,10 @@
             <br>
 
             <div class="settings-actions">
-                <button id="close-settings" data-loc-key="close">Закрыть</button>
+                <button id="close-settings" data-loc-key="close">Close</button>
             </div>
-
         </div>
     </div>
+</body>
 
 </html>

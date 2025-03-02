@@ -68,6 +68,7 @@ export function loadFromLocalStorage(key, defaultValue) {
 export function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
+
 /**
  * Helper function to setup document direction based on language
  * @param {string} language - The language code

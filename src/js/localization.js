@@ -1,7 +1,6 @@
 /**
  * Localization module for Dice Dynasty
- * Uses Yandex Games SDK for language detection
- * and CSV files for storing translations
+ * Uses CSV files for storing translations
  */
 import Papa from 'papaparse';
 import { setupDocumentDirection } from './utils';
@@ -16,24 +15,14 @@ export class Localization {
 
     /**
     * Initialize localization
-    * @param {Object} yandexSDK - Reference to the Yandex SDK instance
     */
-    async init(yandexSDK) {
+    async init() {
         try {
-            // Try to detect language from Yandex SDK
-            if (yandexSDK && yandexSDK.initialized) {
-                const lang = this.detectYandexLanguage(yandexSDK);
-                if (lang) {
-                    this.currentLanguage = lang;
-                    console.log(`Language detected from Yandex SDK: ${lang}`);
-                }
-            } else {
-                // Fallback to browser language
-                const browserLang = this.detectBrowserLanguage();
-                if (browserLang) {
-                    this.currentLanguage = browserLang;
-                    console.log(`Language detected from browser: ${browserLang}`);
-                }
+            // Try to detect browser language
+            const browserLang = this.detectBrowserLanguage();
+            if (browserLang) {
+                this.currentLanguage = browserLang;
+                console.log(`Language detected from browser: ${browserLang}`);
             }
 
             // Set document language attribute
@@ -51,40 +40,6 @@ export class Localization {
             console.error('Error initializing localization:', error);
             return false;
         }
-    }
-
-
-    /**
-     * Detect language from Yandex SDK
-     * @param {Object} yandexSDK - Reference to the Yandex SDK instance
-     * @returns {string|null} - Language code or null if not detected
-     */
-    detectYandexLanguage(yandexSDK) {
-        if (!yandexSDK || !yandexSDK.initialized) return null;
-        
-        try {
-            // Get language directly from the SDK
-            const langCode = yandexSDK.getLanguage();
-            if (!langCode) return null;
-            
-            // Map Yandex language codes to our supported languages
-            const supportedLanguages = {
-                'ru': 'ru',
-                'en': 'en',
-                'tr': 'tr',
-                'de': 'de',
-                'fr': 'fr',
-                'es': 'es'
-                // Add more languages as needed
-            };
-            
-            console.log('Yandex detected language:', langCode);
-            return supportedLanguages[langCode] || 'en';
-        } catch (error) {
-            console.warn('Error detecting Yandex language:', error);
-        }
-        
-        return null;
     }
 
     /**
@@ -179,6 +134,9 @@ export class Localization {
         // Update document language attribute
         document.documentElement.lang = lang;
         
+        // Setup document direction based on language
+        setupDocumentDirection(lang);
+        
         // Trigger language change event
         const event = new CustomEvent('languageChanged', {
             detail: { language: lang }
@@ -262,12 +220,13 @@ export class Localization {
             // Add more languages as needed
         };
     }
-    /*
-    * Check if current language is RTL
-    * @returns {boolean} - True if current language is RTL
-    */
+    
+    /**
+     * Check if current language is RTL
+     * @returns {boolean} - True if current language is RTL
+     */
     isRtl() {
-        const rtlLanguages = ['en', 'ru', 'tr', 'de', 'fr', 'es'];
+        const rtlLanguages = ['ar', 'fa', 'he', 'ur', 'yi', 'dv'];
         return rtlLanguages.includes(this.currentLanguage);
     }
 }

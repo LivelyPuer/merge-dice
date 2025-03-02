@@ -1152,6 +1152,7 @@ html[lang="de"] .add-die-btn {
     margin: 20px auto;
     padding: 0px 10px;
     width: 100%;
+    gap: 10px;
 }
 
 /* Button Styles */
@@ -1209,5 +1210,97 @@ html[lang="de"] .add-die-btn {
         padding: 8px 15px;
         font-size: 14px;
         min-width: 120px;
+    }
+}
+.watch-ad-btn {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+    border: none;
+    width: 100%;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 140px; /* Set minimum width for buttons */
+    height: 44px; /* Fixed height for consistency */
+    margin-left: 10px;
+}
+
+.watch-ad-btn:hover {
+    background-color: #e9c64e;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.watch-ad-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.watch-ad-btn.disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.7;
+}
+.add-die-btn, .watch-ad-btn {
+    flex: 1;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 480px) {
+    .game-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .add-die-btn, .watch-ad-btn {
+        width: 100%;
+        margin-left: 0;
+        font-size: 14px;
+    }
+}
+
+html[lang="ru"] .watch-ad-btn,
+html[lang="de"] .watch-ad-btn {
+    font-size: 13px;
+}
+
+.qa-environment .game-board {
+    display: grid !important; /* Force display as grid */
+    background-color: var(--primary-color) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 100 !important;
+    border: 3px solid red !important; /* Visual indicator for QA */
+}
+
+.qa-environment .game-controls {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Override any potential hiding styles */
+.qa-environment * {
+    visibility: visible;
+}
+
+/* Ensure the game container is displayed */
+.game-container {
+    display: block !important;
+}
+
+/* QA environment specific styles */
+@media (min-width: 1px) {
+    body {
+        overflow: auto !important;
+    }
+    
+    .game-board {
+        min-height: 300px !important;
+        min-width: 300px !important;
     }
 }

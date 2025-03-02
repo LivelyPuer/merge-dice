@@ -76,12 +76,12 @@ export class Game {
         try {
             // Initialize localization with Yandex SDK
             await this.localization.init(this.yandexSDK);
-            
+
             // Register for language change events
             document.addEventListener('languageChanged', () => {
                 this.onLanguageChange();
             });
-            
+
             // Initialize the game
             this.init();
         } catch (error) {
@@ -118,24 +118,23 @@ export class Game {
      * Set up language switcher
      */
     setupLanguageSwitcher() {
-        // Create language selector in settings menu
-        const settingsMenu = document.getElementById('settings-menu');
-        if (!settingsMenu) return;
+        // Look for the language select element in the new settings modal structure
+        const languageSelect = document.getElementById('language-select');
+        const languageLabel = document.getElementById('language-label');
 
-        // Add language option to settings
-        const languageOption = document.createElement('div');
-        languageOption.className = 'settings-option';
+        // Exit if either element doesn't exist
+        if (!languageSelect || !languageLabel) {
+            console.warn('Language switcher elements not found in the DOM');
+            return;
+        }
 
-        // Create label
-        const label = document.createElement('span');
-        label.id = 'language-label';
-        label.textContent = this.localization.get('language');
+        // Update the label with localized text
+        languageLabel.textContent = this.localization.get('language');
 
-        // Create dropdown
-        const select = document.createElement('select');
-        select.id = 'language-select';
+        // Clear any existing options
+        languageSelect.innerHTML = '';
 
-        // Add options for each language
+        // Get available languages and add options
         const languages = this.localization.getAvailableLanguages();
         Object.keys(languages).forEach(langCode => {
             const option = document.createElement('option');
@@ -147,18 +146,15 @@ export class Game {
                 option.selected = true;
             }
 
-            select.appendChild(option);
+            languageSelect.appendChild(option);
         });
 
         // Add event listener for language change
-        select.addEventListener('change', () => {
-            this.localization.setLanguage(select.value);
+        languageSelect.addEventListener('change', () => {
+            this.localization.setLanguage(languageSelect.value);
         });
 
-        // Add elements to settings menu
-        languageOption.appendChild(label);
-        languageOption.appendChild(select);
-        settingsMenu.appendChild(languageOption);
+        console.log('Language switcher initialized with', Object.keys(languages).length, 'languages');
     }
     /**
         * Update UI elements with localized text
@@ -361,14 +357,14 @@ export class Game {
     setupAddDieButton() {
         // Get reference to the existing button
         const addDieBtn = document.getElementById('add-die-btn');
-    
+
         if (addDieBtn) {
             // Add event listener
             addDieBtn.addEventListener('click', () => this.addRandomDie());
-    
+
             // Update text with localization and adjust for length
             this.updateAddDieButtonText(addDieBtn);
-    
+
             // Initial button state
             this.updateAddDieButton();
         }
@@ -379,11 +375,11 @@ export class Game {
      */
     updateAddDieButtonText(button) {
         if (!button) return;
-        
+
         // Get localized text
         const localizedText = this.localization.get('add_dice');
         button.textContent = localizedText;
-        
+
         // Check text length and adjust style for long text
         if (localizedText.length > 12) {
             button.classList.add('long-text');
@@ -397,19 +393,19 @@ export class Game {
     onLanguageChange() {
         // Update all UI text
         this.updateUI();
-        
+
         // Update the add die button text specifically
         const addDieBtn = document.getElementById('add-die-btn');
         if (addDieBtn) {
             this.updateAddDieButtonText(addDieBtn);
         }
-        
+
         // Update the game title
         const gameTitle = document.querySelector('h1');
         if (gameTitle) {
             gameTitle.textContent = this.localization.get('game_title');
         }
-        
+
         // Any other language-specific adjustments can go here
     }
     /**
@@ -729,14 +725,14 @@ export class Game {
     updateYandexLeaderboard() {
         // Only update if score has changed since last update
         if (!this.scoreChanged || this.score <= 0) return;
-        
+
         // Reset the flag
         this.scoreChanged = false;
-        
+
         // If Yandex SDK is available, check and save score
         if (this.yandexSDK && this.yandexSDK.initialized) {
             console.log('Checking if score qualifies for leaderboard update:', this.score);
-            
+
             // First, try to get the player's current leaderboard score
             this.yandexSDK.getPlayerLeaderboardScore()
                 .then(currentScore => {

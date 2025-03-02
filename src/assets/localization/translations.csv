@@ -31,3 +31,4 @@ share_text,I just scored {score} points in Dice Dynasty with a highest die of {h
 score_copied,Score copied to clipboard!,Счет скопирован в буфер обмена!,Puan panoya kopyalandı!,Punktzahl in die Zwischenablage kopiert!,Score copié dans le presse-papiers!,¡Puntuación copiada al portapapeles!
 new_record,New record: {value}!,Новый рекорд: {value}!,Yeni rekor: {value}!,Neuer Rekord: {value}!,Nouveau record: {value}!,¡Nuevo récord: {value}!
 new_high_score,New high score!,Новый рекорд!,Yeni yüksek puan!,Neue Höchstpunktzahl!,Nouveau meilleur score!,¡Nueva puntuación máxima!
+leaderboard_description,Best players in {game}. Can you make it to the top?,Лучшие игроки в {game}. Сможете ли вы подняться на вершину?,{game} oyununun en iyi oyuncuları. Zirveye çıkabilir misin?,Die besten Spieler in {game}. Kannst du es an die Spitze schaffen?,Les meilleurs joueurs de {game}. Pouvez-vous atteindre le sommet?,Los mejores jugadores en {game}. ¿Puedes llegar a la cima?

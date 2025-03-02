@@ -11,37 +11,32 @@
 </head>
 
 <body>
-    <button id="settings-btn" class="settings-btn">⚙️</button>
-    <div id="settings-menu" class="settings-menu">
-        <h3 data-loc-key="settings">Settings</h3>
-        <div class="settings-option">
-            <span data-loc-key="sound">Sound:</span>
-            <button id="sound-toggle">🔊</button>
+
+
+    <div class="game-container">
+        <header>
+            <h1 data-loc-key="game_title">Dice Dynasty</h1>
+        </header>
+
+        <div class="game-info">
+            <div class="score">
+                <span class="label" data-loc-key="score">Score</span>: <span id="score">0</span>
+            </div>
+            <button id="settings-btn" class="settings-btn">⚙️</button>
+
+
+
+            <button id="leaderboard-btn" class="leaderboard-btn">🏆</button>
+            <div class="highest-die">
+                <span class="label" data-loc-key="highest">Highest</span>: <span id="highest-die">1</span>
+            </div>
         </div>
-        <!-- Language selector will be added dynamically -->
-    </div>
 
-    <button id="leaderboard-btn" class="leaderboard-btn">🏆</button>
-
-    <header>
-        <h1 data-loc-key="game_title">Dice Dynasty</h1>
-    </header>
-
-    <div class="game-info">
-        <div class="score">
-            <span class="label" data-loc-key="score">Score</span>: <span id="score">0</span>
+        <div class="game-board" id="game-board"></div>
+        <div class="game-controls">
+            <button id="new-game-btn" class="new-game-btn" data-loc-key="new_game">New Game</button>
+            <button id="add-die-btn" class="add-die-btn" aria-label="Add die to the board" data-loc-key="add_dice">Add Dice</button>
         </div>
-        <div class="highest-die">
-            <span class="label" data-loc-key="highest">Highest</span>: <span id="highest-die">1</span>
-        </div>
-    </div>
-
-    <div class="game-board" id="game-board"></div>
-    <div class="side-button-container">
-        <button id="add-die-btn" class="add-die-btn" aria-label="Add die to the board" data-loc-key="add_dice">Add Dice</button>
-    </div>
-    <div class="actions">
-        <button id="new-game-btn" data-loc-key="new_game">New Game</button>
     </div>
 
     <div class="game-over" id="game-over">
@@ -69,18 +64,42 @@
         <div class="leaderboard-content">
             <h2 data-loc-key="leaderboard">Dice Dynasty Leaderboard</h2>
             <div class="leaderboard-header">
-                <p class="leaderboard-description" data-loc-key="leaderboard_description">Your highest scores are saved automatically!</p>
+                <p class="leaderboard-description" data-loc-key="leaderboard_description">Your highest scores are saved
+                    automatically!</p>
             </div>
-            
+
             <div id="global-leaderboard" class="leaderboard-section">
                 <div class="global-leaderboard-message" data-loc-key="loading_leaderboard">
                     Loading leaderboard data...
                     <p>Please wait while we fetch the latest scores.</p>
                 </div>
             </div>
-            
+
             <div class="leaderboard-actions">
                 <button id="close-leaderboard" data-loc-key="close" class="close-button">Close</button>
+            </div>
+        </div>
+    </div>
+    <div id="settings-menu" class="settings-menu">
+        <div class="settings-content">
+            <h3 data-loc-key="settings">Настройки</h3>
+            
+            <div class="settings-options">
+                <div class="settings-option">
+                    <span data-loc-key="sound">Sound:</span>
+                    <button id="sound-toggle">🔊</button>
+                </div>
+                
+                <div class="settings-option">
+                    <span id="language-label" data-loc-key="language">Язык:</span>
+                    <select id="language-select">
+                        <!-- Language options will be populated by JS -->
+                    </select>
+                </div>
+            </div>
+            
+            <div class="settings-actions">
+                <button id="close-settings" data-loc-key="close">Закрыть</button>
             </div>
         </div>
     </div>

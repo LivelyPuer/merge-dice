@@ -384,30 +384,6 @@ export class UI {
         }
     }
 
-    resumeGameAfterAd() {
-        // This method is called after an ad is closed
-        // It can be used to unpause the game or perform any other action
-        console.log('Resuming game after ad...');
-
-        // If we need to do anything special after the ad closes, do it here
-        // For now, we'll just let the game continue
-    }
-    /**
- * Initialize localization for UI elements
- * @param {Localization} localization - The localization instance
- */
-    initializeLocalization(localization) {
-        this.localization = localization;
-
-        // Listen for language changes
-        document.addEventListener('languageChanged', () => {
-            this.updateLocalizedElements();
-        });
-
-        // Update elements with current language
-        this.updateLocalizedElements();
-    }
-
     /**
      * Update all elements with data-loc-key attribute
      */
@@ -502,4 +478,5 @@ export class UI {
         const message = this.localization.get(key, replacements);
         this.showMessage(message);
     }
+   
 }

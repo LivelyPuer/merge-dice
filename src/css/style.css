@@ -67,7 +67,7 @@ h1 {
     /* Ensure even spacing */
     width: 100%;
     /* Use full width */
-    max-width: 400px;
+    /* max-width: 400px; */
     /* Match game board width */
     margin-bottom: 20px;
     padding: 0 5px;
@@ -84,6 +84,7 @@ h1 {
     text-align: center;
     font-weight: bold;
     min-width: 120px;
+    max-height: 40px;
     /* Minimum width to prevent squeezing */
     flex-grow: 0;
     /* Don't allow growing */
@@ -96,8 +97,8 @@ h1 {
 }
 
 .game-board {
-    width: 400px;
-    height: 400px;
+    width: 500px;
+    height: 500px;
     background-color: var(--primary-color);
     border-radius: 10px;
     display: grid;
@@ -358,25 +359,13 @@ button:hover {
 
 /* Settings Menu */
 .settings-btn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
+    /* position: absolute; */
+    /* top: 20px; */
+    /* left: 20px; */
     font-size: 24px;
     background: none;
     border: none;
     cursor: pointer;
-}
-
-.settings-menu {
-    position: absolute;
-    top: 60px;
-    left: 20px;
-    background-color: white;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    display: none;
-    z-index: 5;
 }
 
 .settings-menu.visible {
@@ -398,16 +387,16 @@ button:hover {
 
 /* Leaderboard */
 .leaderboard-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    /* position: absolute; */
+    /* top: 20px; */
+    /* right: 20px; */
     background: none;
     border: none;
     cursor: pointer;
     font-size: 24px;
 }
 
-.leaderboard-modal {
+.leaderboard-modal, .settings-menu {
     position: fixed;
     top: 0;
     left: 0;
@@ -420,7 +409,7 @@ button:hover {
     z-index: 10;
 }
 
-.leaderboard-content {
+.leaderboard-content, .settings-content {
     background-color: white;
     padding: 20px;
     border-radius: 10px;
@@ -461,16 +450,17 @@ button:hover {
 }
 
 /* Responsive design */
-@media (max-width: 480px) {
+@media (max-width: 580px) {
 
-    .game-board,
-    .game-info {
+    .game-board{
         width: 95vw;
         max-width: 360px;
     }
-
+   
     .game-board {
         height: auto;
+        margin-left: auto;
+        margin-right: auto;
         aspect-ratio: 1;
     }
 
@@ -487,12 +477,13 @@ button:hover {
         font-size: 14px;
     }
 }
+@media (max-width: 580px) {
+    .game-board{
+        width:  100vw;
+    }
+}
 
 @media (max-width: 420px) {
-    .game-info {
-        max-width: 95vw;
-    }
-
     .score,
     .highest-die {
         min-width: 100px;
@@ -560,13 +551,11 @@ button:hover {
     font-size: 20px;
     z-index: 100;
     text-align: center;
-    /* Ensure text is centered */
     width: auto;
-    /* Allow width to adjust to content */
     max-width: 80%;
-    /* Prevent extreme widths */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     animation: pulse-message 2s infinite alternate;
+    pointer-events: none; /* This makes the element ignore mouse events */
 }
 @keyframes pulse-message {
     from {
@@ -620,7 +609,7 @@ button:hover {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto;
+    margin: 0;
     background-color: var(--secondary-color);
     color: white;
     border: none;
@@ -734,7 +723,7 @@ body {
     .add-die-btn {
         position: relative;
         transform: none;
-        margin: 0 auto;
+        margin: 0;
         /* Make button more tappable on mobile */
         width: 120px;
         height: 44px;
@@ -1109,4 +1098,115 @@ html[lang="de"] .add-die-btn {
 .add-die-btn.long-text {
     font-size: 13px;
     padding: 10px 12px;
+}
+.game-container {
+    display: block;
+    height: 100vh;
+}
+/* Close button - match leaderboard close button */
+#close-settings {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#close-settings:hover {
+    background-color: var(--primary-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .settings-content {
+        padding: 15px;
+        width: 95%;
+    }
+    .game-container {
+        width: 100vw;
+        align-content: center;
+    }
+    .game-info{
+        width: 100vw;
+    }
+    
+    .settings-option {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .settings-option select,
+    .settings-option button {
+        align-self: flex-start;
+    }
+}
+/* Game Controls Container */
+.game-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px auto;
+    padding: 0px 10px;
+    width: 100%;
+}
+
+/* Button Styles */
+.add-die-btn, .new-game-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 140px; /* Set minimum width for buttons */
+    height: 44px; /* Fixed height for consistency */
+}
+
+.add-die-btn:hover, .new-game-btn:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.add-die-btn:active, .new-game-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.add-die-btn.disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+/* Special styling for Add Dice button */
+.add-die-btn:not(.disabled) {
+    animation: pulsate 2s infinite ease-in-out;
+}
+
+.add-die-btn:not(.disabled):hover {
+    animation: none;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .game-controls {
+        flex-direction: row; /* Keep as row even on small screens */
+        gap: 10px; /* Reduce gap on small screens */
+    }
+    
+    .add-die-btn, .new-game-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+        min-width: 120px;
+    }
 }
